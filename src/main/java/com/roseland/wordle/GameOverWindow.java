@@ -48,6 +48,8 @@ public class GameOverWindow extends Stage {
             @Override
             public void handle(ActionEvent t) {
                 closeWindow();
+                WordleMain main = new WordleMain();
+                main.start(new Stage());
             }
         
             

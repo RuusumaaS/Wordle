@@ -8,7 +8,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.geometry.Insets;
 import static javafx.application.Application.launch;
 
 /**
@@ -36,10 +38,17 @@ public class WordleMain extends Application {
     public void start(Stage stage) {
         stage.setTitle("WordleOptions");
         
+        VBox vbox = new VBox();
+        vbox.setPadding(new Insets(10));
+        vbox.setSpacing(8);
+        
         //Luodaan gridpane
         GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(15, 15, 15, 15));
         
-        Scene scene = new Scene(grid, 400, 200);
+        Scene scene = new Scene(vbox, 500, 200);
         stage.setScene(scene);
         
         
@@ -69,9 +78,12 @@ public class WordleMain extends Application {
         
         grid.add(enter,2,0);
         
-        Label exception = new Label();
+        Label exception = new Label("Words cans only consist letters and "
+                + "number of words must be an integer");
+        
         exception.setId("fieldRes");
-        grid.add(exception,0,3);
+        exception.setVisible(false);
+        vbox.getChildren().addAll(grid,exception);
         
         enter.setOnAction(new EventHandler<ActionEvent>(){
             @Override
@@ -80,17 +92,18 @@ public class WordleMain extends Application {
                     int amount_of_turns = Integer.parseInt(turnsField.getText());
                     String word = wordField.getText().trim();
                     if(!isWord(word)){
-                        exception.setText("Only letter are allowed");
+                        exception.setVisible(true);
                     }
                     else{
-                        GameWindow game = new GameWindow(amount_of_turns,word);
-                        wordField.clear();
-                        turnsField.clear();
+                        GameWindow game = new GameWindow();
+                        game.setGameHandler(amount_of_turns, word);
+                        game.start(new Stage());
+                        stage.close();
                     }
                     
                 }
                 catch(NumberFormatException e){
-                    exception.setText("Number of turns must be an integer.");
+                    exception.setDisable(true);
                 }
                 
             }

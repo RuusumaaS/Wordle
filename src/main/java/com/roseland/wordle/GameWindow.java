@@ -5,6 +5,8 @@
 package com.roseland.wordle;
 
 
+import javafx.application.Application;
+import static javafx.application.Application.launch;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.layout.CornerRadii;
@@ -13,6 +15,7 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.scene.input.KeyEvent;
 import java.util.Vector;
@@ -20,11 +23,15 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Background;
 import javafx.scene.paint.Color;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
 /**
  *
  * @author asus
  */
-public class GameWindow extends Stage{
+public class GameWindow extends Application{
     
     
     private Vector<Vector<Label>> columns;
@@ -33,41 +40,49 @@ public class GameWindow extends Stage{
     private int letterPointer;
     private boolean gameOver;
     
-    
-    GameWindow(int turns, String word){
+    @Override
+    public void start(Stage stage){
         
+        stage.setTitle("Wordle");
         
-        this.setTitle("Wordle");
         this.columns = new Vector<>();
         this.rowPointer = 0;
         this.letterPointer = 0;
         
-        this.game = new GameHandler(word,turns);
+        
+        
+        VBox vbox = new VBox();
+        vbox.setPadding(new Insets(10));
+        vbox.setSpacing(8);
         
         GridPane grid = new GridPane();
+        grid.setGridLinesVisible(true);
         
         ScrollPane scroll = new ScrollPane();
         scroll.setContent(grid);
         
-        Label text = new Label("Guess the word");
-        grid.add(text, 0,1);
         
-        for(int i = 0; i < turns; ++i){
+        Label text = new Label("Guess the word in " + getGame().getTurns() + " turns");
+        vbox.getChildren().addAll(text, grid);
+        
+        for(int i = 0; i < getGame().getTurns(); ++i){
             Vector<Label> row = new Vector<>();
-            HBox labels = new HBox(word.length());
-            for(int j = 0; j < word.length(); ++j){
+            for(int j = 0; j < getGame().getWord().length(); ++j){
                 Label letterField = new Label("");
+                letterField.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT)));
                 letterField.setId(String.format("%d%d",i,j));
-                letterField.setMinWidth(20);
+                letterField.setMinWidth(30);
+                letterField.setMinHeight(30);
                 letterField.setBackground(new Background(new BackgroundFill(Color.WHITE,CornerRadii.EMPTY, Insets.EMPTY)));
                 row.add(letterField);
-                labels.getChildren().add(letterField);
+                grid.add(letterField, j, i+1);
+                
             }
             this.columns.add(row);
-            grid.add(labels, 1, i);
+            
         }
         
-        Scene scene = new Scene(scroll, 150, 150);
+        Scene scene = new Scene(vbox, 400, 400);
         scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent event) {
@@ -76,8 +91,8 @@ public class GameWindow extends Stage{
                 if(event.getCode().equals(KeyCode.ENTER)){
                     if(isAnswerReady()){
                         String typedWord = "";
-                        for(int i = 0; i < word.length(); ++i){
-                            typedWord = typedWord + getColumns().elementAt(rowPointer).
+                        for(int i = 0; i < getGame().getWord().length(); ++i){
+                            typedWord = typedWord + getColumns().elementAt(getRowPointer()).
                                     elementAt(i).getText();
                         }
                         int[] values = getGame().checkWord(typedWord);
@@ -85,20 +100,20 @@ public class GameWindow extends Stage{
                         ++rowPointer;
                         letterPointer = 0;
                         if(game.gameOver(typedWord)){
-                            GameOverWindow window = new GameOverWindow(true,word);
-                            
+                            GameOverWindow window = new GameOverWindow(true,getGame().getWord());
+                            stage.close();
                             
                         }
-                        else if(rowPointer > game.getTurns()){
-                            GameOverWindow window = new GameOverWindow(false,word);
-                            
+                        else if(getRowPointer() > game.getTurns()){
+                            GameOverWindow window = new GameOverWindow(false,getGame().getWord());
+                            stage.close();
                         }
                     }
                 }
                 else if(event.getCode().equals(KeyCode.BACK_SPACE)){
                     
                     if(letterPointer != 0){
-                        getColumns().elementAt(rowPointer).
+                        getColumns().elementAt(getRowPointer()).
                                     elementAt(letterPointer-1).setText("");
                     
                         --letterPointer;
@@ -109,8 +124,8 @@ public class GameWindow extends Stage{
                     if(!isAnswerReady()){
 
                         if(isLetter(event.getText())){
-                            getColumns().elementAt(rowPointer).
-                                    elementAt(letterPointer).
+                            getColumns().elementAt(getRowPointer()).
+                                    elementAt(getLetterPointer()).
                                     setText(event.getText().toUpperCase());
                             ++letterPointer;
 
@@ -121,13 +136,9 @@ public class GameWindow extends Stage{
                 }
             }
         });
-               
         
-        this.setScene(scene);
-        
-        this.show();
-        
-        
+        stage.setScene(scene);
+        stage.show();
     }
 
     private boolean isAnswerReady(){
@@ -135,11 +146,7 @@ public class GameWindow extends Stage{
         return getColumns().elementAt(rowPointer).
                 elementAt(getGame().getWord().length()-1).getText() != "";
     }    
-    
-    private void closeWindow(){
-        this.close();
-    }
-
+   
     private GameHandler getGame(){
         return this.game;
     }
@@ -189,4 +196,9 @@ public class GameWindow extends Stage{
             
         }
     }
+    
+    public void setGameHandler(int turns, String word){
+        this.game = new GameHandler(word,turns);
+    }
+    
 }
