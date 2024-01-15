@@ -82,8 +82,6 @@ public class GameHandler {
     }
     
     public boolean gameOver(String typedWord){
-        System.out.println(typedWord);
-        System.out.println(this.getWord().toUpperCase());
         return typedWord.toUpperCase().equals(this.getWord().toUpperCase());
     }
     
